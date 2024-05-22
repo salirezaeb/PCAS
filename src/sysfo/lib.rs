@@ -33,7 +33,8 @@ pub fn collect_system_info() -> SystemInfo {
         cpu_cores,
         free_ram,
         total_ram,
-        used_ram, free_swap,
+        used_ram,
+        free_swap,
         total_swap,
         used_swap,
     }
