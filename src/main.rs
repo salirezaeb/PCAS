@@ -1,8 +1,14 @@
-use std::process::Stdio;
-use tokio::process::Command;
-use tokio::io::{self};
-use serde::{Serialize, Deserialize};
+mod sysfo;
 
+use std::process::Stdio;
+
+use sysfo::lib::export_system_info;
+
+use serde::{Serialize, Deserialize};
+use tokio::io::{self};
+use tokio::process::Command;
+use tokio::task::JoinHandle;
+use tokio::time::Duration;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ProcessResult {
@@ -14,6 +20,10 @@ struct ProcessResult {
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
+    let scrape_interval = Duration::from_secs(30);
+
+    let mut tasks = vec![];
+
     let commands = vec![
         "sleep 5",
         "echo hello, world!",
@@ -21,20 +31,10 @@ async fn main() -> io::Result<()> {
         "sleep 1 && echo pagh",
     ];
 
-    let mut tasks = vec![];
+    sysfo::lib::launch_exporter(scrape_interval, &mut tasks);
 
     for command in commands {
-        let task = tokio::spawn(async move {
-            match launch_process(command).await {
-                Ok(child) => {
-                    println!("{:#?}", manage_process(child).await);
-                }
-                Err(e) => {
-                    eprintln!("Failed to launch process: {}", e);
-                }
-            }
-        });
-        tasks.push(task);
+        launch_task(command.to_string(), &mut tasks)
     }
 
     for task in tasks {
@@ -43,11 +43,25 @@ async fn main() -> io::Result<()> {
         }
     }
 
-    println!("All processes have terminated.");
     Ok(())
 }
 
-async fn launch_process(command: &str) -> io::Result<tokio::process::Child> {
+fn launch_task(command: String, tasks: &mut Vec<JoinHandle<()>>) {
+    let task = tokio::spawn(async move {
+        match launch_process(command).await {
+            Ok(child) => {
+                println!("{:#?}", manage_process(child).await);
+            }
+            Err(e) => {
+                eprintln!("Failed to launch process: {}", e);
+            }
+        }
+    });
+
+    tasks.push(task);
+}
+
+async fn launch_process(command: String) -> io::Result<tokio::process::Child> {
     let mut parts = command.split_whitespace();
     let program = parts.next().unwrap();
     let args: Vec<&str> = parts.collect();
