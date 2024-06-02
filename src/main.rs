@@ -1,14 +1,23 @@
 mod sysfo;
 mod fsched;
 
-use tokio::io::{self};
 use tokio::time::Duration;
 
+use fsched::process::Process;
+use fsched::runtime::Runtime;
+use sysfo::runtime::Runtime as SysfoRuntime;
+
 #[tokio::main]
-async fn main() -> io::Result<()> {
+async fn main() {
+    let fsched = Runtime::new();
+
     let scrape_interval = Duration::from_secs(15);
 
-    let mut tasks = vec![];
+    let mut sysfo = SysfoRuntime::new(scrape_interval);
+
+    fsched.add_function(|| async move {
+        sysfo.run().await;
+    }).await;
 
     let commands = vec![
         "sleep 5".to_string(),
@@ -17,15 +26,11 @@ async fn main() -> io::Result<()> {
         "sleep 1 && echo pagh".to_string(),
     ];
 
-    sysfo::launch_exporter(scrape_interval, &mut tasks);
-    fsched::launch_tasks(commands, &mut tasks);
+    for command in commands {
+        let proc = Process::new(command);
 
-    for task in tasks {
-        if let Err(e) = task.await {
-            eprintln!("Error executing task: {:?}", e);
-        }
+        fsched.add_process(proc).await;
     }
 
-    Ok(())
+    fsched.run().await;
 }
-
