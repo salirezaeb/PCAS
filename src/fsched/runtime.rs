@@ -6,8 +6,9 @@ use tokio::task::JoinHandle;
 
 use super::process::Process;
 
+#[derive(Clone)]
 pub struct Runtime {
-    tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
+    pub tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
 impl Runtime {
