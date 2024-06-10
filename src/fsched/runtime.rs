@@ -9,12 +9,14 @@ use super::process::Process;
 #[derive(Clone)]
 pub struct Runtime {
     pub tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
+    daemons: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
 impl Runtime {
     pub fn new() -> Self {
         Runtime {
             tasks: Arc::new(Mutex::new(Vec::new())),
+            daemons: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
@@ -60,6 +62,24 @@ impl Runtime {
     pub async fn remove_completed_tasks(&self) {
         let mut tasks = self.tasks.lock().await;
         tasks.retain(|handle| !handle.is_finished());
+    }
+
+    pub async fn daemon_count(&self) -> usize {
+        let tasks = self.daemons.lock().await;
+        tasks.len()
+    }
+
+    pub async fn add_daemon<F, Fut>(&self, daemon: F)
+    where
+        F: FnOnce() -> Fut + Send + Sync + 'static,
+        Fut: std::future::Future<Output = ()> + Send + 'static,
+    {
+        let handle = tokio::spawn(async move {
+            daemon().await;
+        });
+
+        let mut daemons = self.daemons.lock().await;
+        daemons.push(handle);
     }
 
     pub async fn daemon(&self) {

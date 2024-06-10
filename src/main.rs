@@ -8,7 +8,7 @@ use axum::{
 
 use fsched::{
     runtime::Runtime as FschedRuntime,
-    service::HTTPService as FschedService,
+    service::{DaemonService, TaskService},
 };
 use sysfo::{
     runtime::Runtime as SysfoRuntime,
@@ -22,21 +22,29 @@ async fn main() {
     let sysfo = SysfoRuntime::new();
 
     let runtime = fsched.clone();
-    fsched.add_function(|| async move {
-        let fsched_svc = FschedService::new(runtime);
+    fsched.add_daemon(|| async move {
+        let task_state = TaskService::new(runtime.clone());
 
         let task_app = Router::new()
-            .route("/new", post(FschedService::new_handler))
-            .route("/count", post(FschedService::count_handler))
-            .with_state(fsched_svc);
+            .route("/new", post(TaskService::new_handler))
+            .route("/count", get(TaskService::count_handler))
+            .with_state(task_state);
 
-        let sysfo_svc = SysfoService::new(sysfo);
+        let daemon_state = DaemonService::new(runtime.clone());
+
+        let daemon_app = Router::new()
+            .route("/count", get(DaemonService::count_handler))
+            .with_state(daemon_state);
+
+        let exporter_state = SysfoService::new(sysfo);
+
         let exporter_app = Router::new()
             .route("/info", get(SysfoService::info_handler))
-            .with_state(sysfo_svc);
+            .with_state(exporter_state);
 
         let app = Router::new()
             .nest("/task", task_app)
+            .nest("/daemon", daemon_app)
             .nest("/system", exporter_app);
 
         let listener = tokio::net::TcpListener::bind("localhost:3000").await.unwrap();

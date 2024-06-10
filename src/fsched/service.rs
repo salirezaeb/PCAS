@@ -16,28 +16,47 @@ pub struct TaskRequest {
 }
 
 #[derive(Clone)]
-pub struct HTTPService {
+pub struct TaskService {
     pub runtime: Arc<Runtime>,
 }
 
-impl HTTPService {
+impl TaskService {
     pub fn new(runtime: Runtime) -> Self {
-        HTTPService {
+        TaskService {
             runtime: Arc::new(runtime),
         }
     }
 
-    pub async fn count_handler(State(state): State<HTTPService>) -> impl IntoResponse {
+    pub async fn count_handler(State(state): State<TaskService>) -> impl IntoResponse {
         let count = state.runtime.task_count().await;
 
         format!("Number of tasks: {}", count)
     }
 
-    pub async fn new_handler(State(state): State<HTTPService>, Json(payload): Json<TaskRequest>) -> impl IntoResponse {
+    pub async fn new_handler(State(state): State<TaskService>, Json(payload): Json<TaskRequest>) -> impl IntoResponse {
         let proc = Process::new(payload.command);
 
         state.runtime.add_process(proc).await;
 
         StatusCode::OK
+    }
+}
+
+#[derive(Clone)]
+pub struct DaemonService {
+    pub runtime: Arc<Runtime>,
+}
+
+impl DaemonService {
+    pub fn new(runtime: Runtime) -> Self {
+        DaemonService {
+            runtime: Arc::new(runtime),
+        }
+    }
+
+    pub async fn count_handler(State(state): State<DaemonService>) -> impl IntoResponse {
+        let count = state.runtime.daemon_count().await;
+
+        format!("Number of tasks: {}", count)
     }
 }
