@@ -9,7 +9,8 @@ pub struct SystemInfo {
     cpu_cores: usize,
     free_ram: u64,
     total_ram: u64,
-    used_ram: u64, free_swap: u64,
+    used_ram: u64, 
+    free_swap: u64,
     total_swap: u64,
     used_swap: u64,
 }

@@ -4,9 +4,11 @@ use std::process::Stdio;
 use serde::{Serialize, Deserialize};
 use tokio::io::{self};
 use tokio::process::Command;
+use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ProcessResult {
+    id: Uuid,
     command: String,
     // timestamp: ?
     pid: Option<u32>,
@@ -23,11 +25,12 @@ pub struct Process {
 impl Process {
     pub fn new(command: String) -> Self {
         let result = ProcessResult {
+            id: Uuid::new_v4(),
             pid: None,
             stdout: None,
             stderr: None,
             exit_status: None,
-            command: command.clone(),
+            command,
         };
 
         Self {
