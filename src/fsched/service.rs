@@ -27,16 +27,13 @@ impl HTTPService {
         }
     }
 
-    pub async fn task_count(State(state): State<HTTPService>) -> impl IntoResponse {
-        let state_value = {
-            let tasks = state.runtime.tasks.lock().await;
-            tasks.len()
-        };
+    pub async fn count_handler(State(state): State<HTTPService>) -> impl IntoResponse {
+        let count = state.runtime.task_count().await;
 
-        format!("Hello, World! Number of tasks: {}", state_value)
+        format!("Number of tasks: {}", count)
     }
 
-    pub async fn new_process(State(state): State<HTTPService>, Json(payload): Json<TaskRequest>) -> impl IntoResponse {
+    pub async fn new_handler(State(state): State<HTTPService>, Json(payload): Json<TaskRequest>) -> impl IntoResponse {
         let proc = Process::new(payload.command);
 
         state.runtime.add_process(proc).await;

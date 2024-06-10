@@ -44,10 +44,10 @@ impl Process {
         let args: Vec<&str> = parts.collect();
 
         let child = Command::new(program)
-                            .args(&args)
-                            .stdout(Stdio::piped())
-                            .stderr(Stdio::piped())
-                            .spawn();
+            .args(&args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn();
 
         self.child = child;
 

@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::future::Future;
+use std::sync::Arc;
 
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
@@ -16,6 +16,11 @@ impl Runtime {
         Runtime {
             tasks: Arc::new(Mutex::new(Vec::new())),
         }
+    }
+
+    pub async fn task_count(&self) -> usize {
+        let tasks = self.tasks.lock().await;
+        tasks.len()
     }
 
     pub async fn add_task<F>(&self, task: F)
@@ -57,7 +62,7 @@ impl Runtime {
         tasks.retain(|handle| !handle.is_finished());
     }
 
-    pub async fn run(&self) {
+    pub async fn daemon(&self) {
         loop {
             self.remove_completed_tasks().await;
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
