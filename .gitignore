@@ -1,1 +1,6 @@
-/target
+__pycache__/
+
+/master/.env
+/master/.venv
+
+/worker/target
