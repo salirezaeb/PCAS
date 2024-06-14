@@ -36,9 +36,11 @@ impl TaskService {
     pub async fn new_handler(State(state): State<TaskService>, Json(payload): Json<TaskRequest>) -> impl IntoResponse {
         let proc = Process::new(payload.command);
 
-        state.runtime.add_process(proc).await;
+        match state.runtime.run_process(proc).await {
+            Ok(res) => Json(res).into_response(),
+            Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+        }
 
-        StatusCode::OK
     }
 }
 

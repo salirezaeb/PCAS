@@ -11,6 +11,7 @@ pub struct ProcessResult {
     id: Uuid,
     command: String,
     // timestamp: ?
+    // execution_time: ?
     pid: Option<u32>,
     stdout: Option<String>,
     stderr: Option<String>,

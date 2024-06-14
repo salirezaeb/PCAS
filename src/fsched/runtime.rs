@@ -1,10 +1,11 @@
+use std::io::{Error, ErrorKind};
 use std::future::Future;
 use std::sync::Arc;
 
-use tokio::sync::Mutex;
+use tokio::sync::{oneshot, Mutex};
 use tokio::task::JoinHandle;
 
-use super::process::Process;
+use super::process::{Process, ProcessResult};
 
 #[derive(Clone)]
 pub struct Runtime {
@@ -44,19 +45,26 @@ impl Runtime {
         }).await;
     }
 
-    pub async fn add_process(&self, mut process: Process) {
+    pub async fn run_process(&self, mut process: Process) -> Result<ProcessResult, Error> {
+        let (tx, rx) = oneshot::channel();
+
         self.add_task(async {
             process.run();
 
             match process.child {
                 Ok(_) => {
-                    println!("{:#?}", process.capture_output().await);
+                    let _ = tx.send(Ok(process.capture_output().await));
                 }
                 Err(e) => {
-                    eprintln!("Failed to launch process: {}", e);
+                    let _ = tx.send(Err(e));
                 }
             }
         }).await;
+
+        match rx.await {
+            Ok(res) => res,
+            Err(_) => Err(Error::new(ErrorKind::Other, "Failed to read from channel")),
+        }
     }
 
     pub async fn remove_completed_tasks(&self) {
