@@ -35,16 +35,6 @@ impl Runtime {
         tasks.push(handle);
     }
 
-    pub async fn add_function<F, Fut>(&self, f: F)
-    where
-        F: FnOnce() -> Fut + Send + Sync + 'static,
-        Fut: std::future::Future<Output = ()> + Send + 'static,
-    {
-        self.add_task(async move {
-            f().await;
-        }).await;
-    }
-
     pub async fn run_process(&self, mut process: Process) -> Result<ProcessResult, Error> {
         let (tx, rx) = oneshot::channel();
 

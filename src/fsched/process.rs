@@ -1,21 +1,22 @@
 use std::io::{Error, ErrorKind};
 use std::process::Stdio;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use tokio::io::{self};
 use tokio::process::Command;
 use uuid::Uuid;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct ProcessResult {
     id: Uuid,
     command: String,
-    // timestamp: ?
-    // execution_time: ?
     pid: Option<u32>,
     stdout: Option<String>,
     stderr: Option<String>,
     exit_status: Option<i32>,
+    timestamp: Option<Duration>,
+    execution_time: Option<Duration>,
 }
 
 pub struct Process {
@@ -31,6 +32,8 @@ impl Process {
             stdout: None,
             stderr: None,
             exit_status: None,
+            timestamp: None,
+            execution_time: None,
             command,
         };
 
@@ -46,6 +49,12 @@ impl Process {
         let mut parts = command.split_whitespace();
         let program = parts.next().unwrap();
         let args: Vec<&str> = parts.collect();
+
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap();
+
+        self.result.timestamp = Some(now);
 
         let child = Command::new(program)
             .args(&args)
@@ -64,6 +73,11 @@ impl Process {
         if let Ok(child) = self.child {
             let output = child.wait_with_output().await.unwrap();
 
+            let now = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap();
+
+            self.result.execution_time = now.checked_sub(self.result.timestamp.unwrap());
             self.result.stdout = Some(String::from_utf8_lossy(&output.stdout).to_string());
             self.result.stderr = Some(String::from_utf8_lossy(&output.stderr).to_string());
             self.result.exit_status = output.status.code();
