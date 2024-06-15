@@ -1,5 +1,5 @@
-from apps.task.app import app as task_app
+from apps.api_server.app import app as api_server_app
 
 
-if __name__ == '__main__':
-    task_app.run()
+if __name__ == "__main__":
+    api_server_app.run()
