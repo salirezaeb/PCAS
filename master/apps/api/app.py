@@ -1,4 +1,4 @@
-from apps.api_server import routes
+from apps.api import routes
 from config import Config
 
 from flask import Flask
