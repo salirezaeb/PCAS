@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::State,
+    extract::{Json, State},
     response::IntoResponse,
 };
 use tokio::sync::Mutex;
@@ -26,6 +26,6 @@ impl HTTPService {
         let mut runtime = state.runtime.lock().await;
         let info = runtime.export_info().await;
 
-        format!("System info: {:?}", info)
+        Json(info).into_response()
     }
 }
