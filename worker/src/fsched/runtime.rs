@@ -1,24 +1,35 @@
-use std::io::{Error, ErrorKind};
+use std::io::{self, Error, ErrorKind};
 use std::future::Future;
 use std::sync::Arc;
 
 use tokio::sync::{oneshot, Mutex};
 use tokio::task::JoinHandle;
 
+use super::fs::FilesystemHandle;
 use super::process::{Process, ProcessResult};
 
 #[derive(Clone)]
 pub struct Runtime {
+    fs: Arc<Mutex<FilesystemHandle>>,
     pub tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
     daemons: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
 impl Runtime {
-    pub fn new() -> Self {
-        Runtime {
+    pub fn new() -> io::Result<Self> {
+        let fs = FilesystemHandle::new()?;
+
+        Ok(Runtime {
+            fs: Arc::new(Mutex::new(fs)),
             tasks: Arc::new(Mutex::new(Vec::new())),
             daemons: Arc::new(Mutex::new(Vec::new())),
-        }
+        })
+    }
+
+    pub async fn create_file(&self, filename: String, content: &[u8]) -> Result<(), io::Error> {
+        let handle = self.fs.lock().await;
+
+        handle.create_file(filename, content).await
     }
 
     pub async fn task_count(&self) -> usize {
@@ -55,6 +66,17 @@ impl Runtime {
             Ok(res) => res,
             Err(_) => Err(Error::new(ErrorKind::Other, "Failed to read from channel")),
         }
+    }
+
+    pub async fn run_file_with_command(&self, command: String, filename: String) -> Result<ProcessResult, Error> {
+        let handle = self.fs.lock().await;
+
+        let filepath = handle.get_filepath(filename)?;
+        let command = format!("{} {}", command, filepath);
+
+        let proc = Process::new(command);
+
+        self.run_process(proc).await
     }
 
     pub async fn remove_completed_tasks(&self) {

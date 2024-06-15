@@ -17,7 +17,7 @@ use sysfo::{
 
 #[tokio::main]
 async fn main() {
-    let fsched = FschedRuntime::new();
+    let fsched = FschedRuntime::new().expect("Failed to create fsched runtime");
 
     let sysfo = SysfoRuntime::new();
 
@@ -26,8 +26,10 @@ async fn main() {
         let task_state = TaskService::new(runtime.clone());
 
         let task_app = Router::new()
-            .route("/new", post(TaskService::new_handler))
             .route("/count", get(TaskService::count_handler))
+            .route("/command", post(TaskService::command_handler))
+            .route("/file/new", post(TaskService::new_file_handler))
+            .route("/file/run", post(TaskService::run_file_handler))
             .with_state(task_state);
 
         let daemon_state = DaemonService::new(runtime.clone());
