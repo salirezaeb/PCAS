@@ -13,6 +13,9 @@ pub struct SystemInfo {
     free_swap: u64,
     total_swap: u64,
     used_swap: u64,
+    free_cache: u64,
+    total_cache: u64,
+    used_cache: u64,
 }
 
 #[derive(Clone)]
@@ -42,6 +45,11 @@ impl Runtime {
         let total_swap = system.total_swap();
         let used_swap = total_swap - free_swap;
 
+        // FIXME: some dummy data will do for now
+        let free_cache = 20;
+        let total_cache = 30;
+        let used_cache = total_cache - free_cache;
+
         SystemInfo {
             cpu_cores,
             free_ram,
@@ -50,6 +58,9 @@ impl Runtime {
             free_swap,
             total_swap,
             used_swap,
+            free_cache,
+            total_cache,
+            used_cache,
         }
     }
 }
