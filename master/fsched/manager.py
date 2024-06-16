@@ -2,7 +2,7 @@ import time
 import threading
 import uuid
 
-from apps.cluster.worker import WorkerNode
+from fsched.worker import WorkerNode
 from config import Config
 
 
@@ -15,7 +15,7 @@ class ClusterManager:
 
     def __calculate_generosity(self):
         cluster_free_cache = sum([worker.system_info.free_cache for worker in self.worker_id_map.values()])
-        generosity_variable = -1 / (max(cluster_free_cache / 2, 10))
+        generosity_variable = -1 / (max(cluster_free_cache, 20) / 2)
 
         with self.__generosity_lock:
             self.__generosity_variable = generosity_variable
@@ -46,3 +46,7 @@ class ClusterManager:
 
             self.__calculate_generosity()
             time.sleep(self.SCRAPE_INTERVAL)
+
+    def assign_task_to_worker(self, worker_id):
+        worker = self.worker_id_map[worker_id]
+        pass # TODO

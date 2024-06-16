@@ -1,4 +1,4 @@
-from apps.api import routes
+from apps.scheduler import routes
 from config import Config
 
 from flask import Flask

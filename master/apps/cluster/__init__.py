@@ -1,4 +1,4 @@
-from apps.cluster.manager import ClusterManager
+from fsched.manager import ClusterManager
 
 
 cluster_manager = ClusterManager()
