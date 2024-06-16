@@ -12,6 +12,9 @@ class SystemInfo:
     free_swap: int
     total_swap: int
     used_swap: int
+    free_cache: int
+    total_cache: int
+    used_cache: int
 
 
 class WorkerNode:

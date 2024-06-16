@@ -5,7 +5,7 @@ from flask import Blueprint, request, jsonify
 
 routes_bp = Blueprint("routes", __name__)
 
-@routes_bp.route("/worker/add", methods=["POST"])
+@routes_bp.route("/cluster/worker/add", methods=["POST"])
 def add_worker():
     json_data = request.get_json()
 
@@ -21,3 +21,9 @@ def add_worker():
         return jsonify({"message": "worker node is unresponsive"}), 500
 
     return jsonify({"message": "worker node successfully added"}), 200
+
+@routes_bp.route("/cluster/generosity", methods=["GET"])
+def get_generosity():
+    generosity_variable = cluster_manager.get_generosity_variable()
+
+    return jsonify({"generosity": generosity_variable}), 200
