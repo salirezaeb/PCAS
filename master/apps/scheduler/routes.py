@@ -1,9 +1,16 @@
-from apps.scheduler import fs
+from apps.scheduler import fs, scheduler
 
 from flask import Blueprint, request, jsonify
 
 
 routes_bp = Blueprint("routes", __name__)
+
+
+@routes_bp.route("/scheduler/generosity", methods=["GET"])
+def get_generosity():
+    generosity_variable = scheduler.get_generosity_variable()
+
+    return jsonify({"generosity": generosity_variable}), 200
 
 @routes_bp.route("/scheduler/task/new", methods=["POST"])
 def new_task():

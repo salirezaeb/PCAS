@@ -22,8 +22,8 @@ def add_worker():
 
     return jsonify({"message": "worker node successfully added"}), 200
 
-@routes_bp.route("/cluster/generosity", methods=["GET"])
-def get_generosity():
-    generosity_variable = cluster_manager.get_generosity_variable()
+@routes_bp.route("/cluster/worker/list", methods=["GET"])
+def list_workers():
+    worker_id_map = cluster_manager.list_workers()
 
-    return jsonify({"generosity": generosity_variable}), 200
+    return jsonify(worker_id_map), 200
