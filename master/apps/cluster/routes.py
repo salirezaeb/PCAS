@@ -27,3 +27,17 @@ def list_workers():
     worker_id_map = cluster_manager.list_workers()
 
     return jsonify(worker_id_map), 200
+
+# FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
+@routes_bp.route("/cluster/task/assign", methods=["POST"])
+def assign_task_to_worker():
+    json_data = request.get_json()
+
+    print(json_data)
+
+    if "filename" not in json_data.keys() or "worker_id" not in json_data.keys():
+        return jsonify({"message": "No filename or worker_id specified"}), 400
+
+    # TODO
+
+    return jsonify({"message": "Ok!"}), 200

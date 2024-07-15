@@ -23,13 +23,15 @@ def new_task():
 
     return jsonify({"message": f"{filename}"}), 200
 
+# FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
 @routes_bp.route("/scheduler/task/run", methods=["POST"])
 def run_task():
     json_data = request.get_json()
 
-    if "command" or "filename" not in json_data:
+    if "command" not in json_data.keys() or "filename" not in json_data.keys():
         return jsonify({"message": "No command or filename specified"}), 400
 
-    # TODO: post to worker
+    filename = json_data["filename"]
+    scheduler.schedule(filename)
 
     return jsonify({"message": "Ok!"}), 200

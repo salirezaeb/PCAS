@@ -40,3 +40,22 @@ class Scheduler:
             self.__calculate_generosity()
 
             time.sleep(self.update_interval)
+
+    def __choose_suitable_worker(self, filename):
+        # TODO: this is for testing purposes
+        keys = list(self.worker_resource_map.keys())
+        return (keys[0] if len(keys) != 0 else None)
+
+    # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
+    def schedule(self, filename):
+        url = f"{self.manager_host}/cluster/task/assign"
+
+        headers = {"Content-Type": "application/json"}
+
+        payload = {
+            "filename": filename,
+            "worker_id": self.__choose_suitable_worker(filename),
+        }
+
+        resp = self.__session.post(url, headers=headers, json=payload)
+        resp.raise_for_status()
