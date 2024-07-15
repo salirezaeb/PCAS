@@ -1,3 +1,5 @@
+from apps.scheduler import fs
+
 from flask import Blueprint, request, jsonify
 
 
@@ -10,9 +12,9 @@ def new_task():
 
     file = request.files['file']
 
-    # TODO: post to worker
+    filename = fs.create_file(file)
 
-    return jsonify({"message": f"Ok! {file}"}), 200
+    return jsonify({"message": f"{filename}"}), 200
 
 @routes_bp.route("/scheduler/task/run", methods=["POST"])
 def run_task():

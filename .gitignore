@@ -1,4 +1,5 @@
 __pycache__/
+fsched-filebase/
 
 /master/.env
 /master/.venv
