@@ -5,7 +5,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
 use super::process::Process;
@@ -60,7 +60,14 @@ impl TaskService {
                 }
             }
 
-            return (StatusCode::OK, Json(filename)).into_response();
+            #[derive(Serialize)]
+            struct Response {
+                id: String,
+            }
+
+            let response = Response { id: filename };
+
+            return (StatusCode::OK, Json(response)).into_response();
         }
 
         StatusCode::BAD_REQUEST.into_response()
