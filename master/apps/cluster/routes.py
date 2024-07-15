@@ -33,11 +33,16 @@ def list_workers():
 def assign_task_to_worker():
     json_data = request.get_json()
 
-    print(json_data)
+    required_keys = ["command", "filepath", "worker_id"]
 
-    if "filename" not in json_data.keys() or "worker_id" not in json_data.keys():
-        return jsonify({"message": "No filename or worker_id specified"}), 400
+    for key in required_keys:
+        if key not in json_data.keys():
+            return jsonify({"message": "Required keys not specified"}), 400
 
-    # TODO
+    command = json_data["command"]
+    filepath = json_data["filepath"]
+    worker_id = json_data["worker_id"]
 
-    return jsonify({"message": "Ok!"}), 200
+    res = cluster_manager.assign_task_to_worker(worker_id, command, filepath)
+
+    return jsonify({"result": res}), 200

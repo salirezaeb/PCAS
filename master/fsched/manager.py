@@ -38,6 +38,10 @@ class ClusterManager:
 
             time.sleep(self.scrape_interval)
 
-    def assign_task_to_worker(self, worker_id):
+    def assign_task_to_worker(self, worker_id, command, filepath):
         worker = self.worker_id_map[worker_id]
-        pass # TODO
+
+        id = worker.upload_file(filepath)
+        res = worker.run_task(command, id)
+
+        return res

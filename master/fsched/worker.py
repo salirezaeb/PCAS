@@ -37,3 +37,30 @@ class WorkerNode:
 
         json_data = resp.json()
         self.system_info = SystemInfo(**json_data)
+
+    def upload_file(self, filepath):
+        url = f"{self.host}/task/file/new"
+
+        files = { "file": open(filepath, "rb") }
+
+        resp = self.__session.post(url, files=files)
+        resp.raise_for_status()
+
+        json_data = resp.json()
+
+        return json_data["id"]
+
+    def run_task(self, command, id):
+        url = f"{self.host}/task/file/run"
+
+        headers = {"Content-Type": "application/json"}
+
+        payload = {
+            "command": command,
+            "filename": id,
+        }
+
+        resp = self.__session.post(url, headers=headers, json=payload)
+        resp.raise_for_status()
+
+        return resp.json()

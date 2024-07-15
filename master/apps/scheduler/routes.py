@@ -31,7 +31,9 @@ def run_task():
     if "command" not in json_data.keys() or "filename" not in json_data.keys():
         return jsonify({"message": "No command or filename specified"}), 400
 
-    filename = json_data["filename"]
-    scheduler.schedule(filename)
+    command = json_data["command"]
+    filepath = fs.get_filepath(json_data["filename"])
 
-    return jsonify({"message": "Ok!"}), 200
+    resp = scheduler.schedule(command, filepath)
+
+    return jsonify({"result": resp.json()}), 200
