@@ -18,12 +18,15 @@ class FileSystem:
             raise ValueError("No file provided")
 
         file_extension = file.filename.rsplit('.', 1)[1].lower()
-        filename = f"{uuid.uuid4()}.{file_extension}"
+        filename = str(uuid.uuid4())
 
         with self.__lock:
             file.save(os.path.join(self.upload_folder, filename))
 
         return filename
 
-    def get_filepath(self, filename):
-        return os.path.join(self.upload_folder, filename)
+    def get_handle(self, filename):
+        filepath = os.path.join(self.upload_folder, filename)
+        handle = open(filepath, "rb")
+
+        return handle

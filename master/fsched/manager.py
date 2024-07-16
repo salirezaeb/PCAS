@@ -8,6 +8,7 @@ from fsched.worker import WorkerNode
 
 
 class ClusterManager:
+    # FIXME: pass config as argument to constructor instead of reading directly from Config
     def __init__(self):
         self.worker_id_map = {}
         self.scrape_interval = Config.SCRAPE_INTERVAL_SECONDS
@@ -38,10 +39,13 @@ class ClusterManager:
 
             time.sleep(self.scrape_interval)
 
-    def assign_task_to_worker(self, worker_id, command, filepath):
+    def assign_task_benchmark(self, worker_id, task_id):
+        pass # TODO
+
+    def assign_task_execution(self, worker_id, command, task_id):
         worker = self.worker_id_map[worker_id]
 
-        id = worker.upload_file(filepath)
+        id = worker.load_task(task_id)
         res = worker.run_task(command, id)
 
         return res

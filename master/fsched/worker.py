@@ -2,6 +2,8 @@ import requests
 
 from dataclasses import dataclass
 
+from fsched.fs import FileSystem
+
 
 @dataclass
 class SystemInfo:
@@ -20,8 +22,9 @@ class SystemInfo:
 class WorkerNode:
     def __init__(self, host):
         self.host = host
-        self.__session = requests.Session()
         self.system_info = None
+        self.__fs = FileSystem()
+        self.__session = requests.Session()
 
     def raise_if_unresponsive(self):
         url = f"{self.host}/task/count"
@@ -38,10 +41,10 @@ class WorkerNode:
         json_data = resp.json()
         self.system_info = SystemInfo(**json_data)
 
-    def upload_file(self, filepath):
+    def load_task(self, task_id):
         url = f"{self.host}/task/file/new"
 
-        files = { "file": open(filepath, "rb") }
+        files = { "file": self.__fs.get_handle(task_id) }
 
         resp = self.__session.post(url, files=files)
         resp.raise_for_status()

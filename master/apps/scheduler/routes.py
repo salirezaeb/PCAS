@@ -12,28 +12,16 @@ def get_generosity():
 
     return jsonify({"generosity": generosity_variable}), 200
 
-@routes_bp.route("/scheduler/task/new", methods=["POST"])
-def new_task():
-    if "file" not in request.files:
-        return jsonify({"message": "No file specified"}), 400
-
-    file = request.files['file']
-
-    filename = fs.create_file(file)
-
-    return jsonify({"message": f"{filename}"}), 200
-
 # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
-@routes_bp.route("/scheduler/task/run", methods=["POST"])
-def run_task():
+@routes_bp.route("/scheduler/task/worker", methods=["POST"])
+def get_suitable_worker():
     json_data = request.get_json()
 
-    if "command" not in json_data.keys() or "filename" not in json_data.keys():
-        return jsonify({"message": "No command or filename specified"}), 400
+    if "task_id" not in json_data.keys():
+        return jsonify({"message": "No task_id specified"}), 400
 
-    command = json_data["command"]
-    filepath = fs.get_filepath(json_data["filename"])
+    task_id = json_data["task_id"]
 
-    resp = scheduler.schedule(command, filepath)
+    worker_id = scheduler.choose_suitable_worker(task_id)
 
-    return jsonify({"result": resp.json()}), 200
+    return jsonify({"worker_id": worker_id}), 200
