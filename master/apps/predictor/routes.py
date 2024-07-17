@@ -10,7 +10,7 @@ routes_bp = Blueprint("routes", __name__)
 def predict_task_cache_requirements():
     json_data = request.get_json()
 
-    required_keys = ["task_id", "generosity", "result"]
+    required_keys = ["task_id", "generosity", "execution_time_list"]
 
     for key in required_keys:
         if key not in json_data.keys():
@@ -18,8 +18,8 @@ def predict_task_cache_requirements():
 
     task_id = json_data["task_id"]
     generosity = json_data["generosity"]
-    cos_exec_map = json_data["result"]
+    function_exec_times = json_data["execution_time_list"]
 
-    suitable_cos, pred_exec_time = cache_predictor.predict_for_function(task_id, generosity, cos_exec_map)
+    suitable_cos, pred_exec_time = cache_predictor.predict_for_function(task_id, generosity, function_exec_times)
 
     return jsonify({"suitable_cos": suitable_cos}), 200

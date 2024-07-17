@@ -18,10 +18,10 @@ class CachePredictor:
         model = self.__db.build_model(generosity)
 
         target = (None, None, None)
-        for (_, val) in model.items():
+        for (key, val) in model.items():
             model_exec_times, x_model, y_model = val
 
-            target = (min_mse, x_best, y_best)
+            min_mse, _, _ = target
             mse = self.__run_mse(model_exec_times, function_exec_times)
 
             if min_mse is None or mse < min_mse:

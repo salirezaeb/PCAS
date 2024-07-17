@@ -32,7 +32,7 @@ class CSVAdapter:
     @staticmethod
     def __find_x_for_slope(S, a, b):
         def equation(x):
-            return self.__asymptotic_derivative(x, b) - S
+            return CSVAdapter.__asymptotic_derivative(x, b) - S
 
         x_initial_guess = 1.1
         x_solution = fsolve(equation, x_initial_guess)
@@ -43,10 +43,10 @@ class CSVAdapter:
     def build_model(self, generosity):
         model = {}
 
-        for function_name in self.__function_list:
-            df_target = self.__df[self.__df["name"] == function_name]
+        for name in self.__function_list:
+            df_target = self.__df[self.__df["name"] == name]
 
-            unique_input_sizes = df["input_size"].unique()
+            unique_input_sizes = df_target["input_size"].unique()
             unique_input_sizes.sort()
 
             for size in unique_input_sizes:
@@ -58,17 +58,17 @@ class CSVAdapter:
                 if y_data.empty:
                     continue
 
-                params, _ = curve_fit(self.__asymptotic_func, x_data, y_data, p0=[1, 1])
+                params, _ = curve_fit(CSVAdapter.__asymptotic_func, x_data, y_data, p0=[1, 1])
 
                 x_fit = np.linspace(x_data.min(), x_data.max(), 100)
-                y_fit = asymptotic_func(x_fit, *params)
+                y_fit = CSVAdapter.__asymptotic_func(x_fit, *params)
 
-                x_slope = self.__find_x_for_slope(generosity, params[0], params[1])
+                x_slope = CSVAdapter.__find_x_for_slope(generosity, params[0], params[1])
 
                 x_best = min(int(np.ceil(x_slope)), 10)
-                y_best = self.__asymptotic_func(x_best, *params)
+                y_best = CSVAdapter.__asymptotic_func(x_best, *params)
 
-                model_exec_times = [self.__asymptotic_func(cos, *params) for cos in range(1, self.__cos_count)]
+                model_exec_times = [CSVAdapter.__asymptotic_func(cos, *params) for cos in range(1, self.__cos_count)]
 
                 model[(name, size)] = (model_exec_times, x_best, y_best)
 
