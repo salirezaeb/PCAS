@@ -39,9 +39,6 @@ class ClusterManager:
 
             time.sleep(self.scrape_interval)
 
-    def assign_task_benchmark(self, worker_id, task_id):
-        pass # TODO
-
     def assign_task_execution(self, worker_id, command, task_id):
         worker = self.worker_id_map[worker_id]
 

@@ -11,3 +11,5 @@ class Config:
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "./fsched-filebase")
     MANAGER_HOST = os.environ.get("MANAGER_HOST", "http://localhost:8100")
     SCHEDULER_HOST = os.environ.get("MANAGER_HOST", "http://localhost:8000")
+    DB_CSV_PATH = os.environ.get("DB_CSV_PATH", "./data.csv")
+    COS_COUNT = int(os.environ.get("COS_COUNT", "11"))
