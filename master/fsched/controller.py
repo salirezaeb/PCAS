@@ -8,10 +8,12 @@ from fsched.fs import FileSystem
 class Controller:
     # FIXME: pass config as argument to constructor instead of reading directly from Config
     def __init__(self):
+        self.task_llc = {}
         self.task_state = {}
         self.cos_count = Config.COS_COUNT
         self.manager_host = Config.MANAGER_HOST
         self.scheduler_host = Config.SCHEDULER_HOST
+        self.predictor_host = Config.SCHEDULER_HOST
         self.__fs = FileSystem()
         self.__session = requests.Session()
 
@@ -39,7 +41,7 @@ class Controller:
         return json_data["worker_id"]
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
-    def assign_execution(self, command, task_id):
+    def __execution_helper(self, command, task_id, cos):
         url = f"{self.manager_host}/cluster/task/assign"
 
         headers = {"Content-Type": "application/json"}
@@ -58,19 +60,59 @@ class Controller:
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
     def assign_benchmark(self, command, task_id):
-        exec_time = {}
+        cos_exec_time_map = {}
 
-        for cos in range(1, self.cos_count + 1):
-            resp = self.assign_execution(command, task_id)
+        for cos in range(1, self.cos_count):
+            resp = self.__execution_helper(command, task_id, cos)
             json_data = resp.json()["result"]
 
+            # FIXME: use exceptions here
             if json_data["exit_status"] != 0:
-                raise Exception("failed to benchmark the task with specified command")
+                return
 
             json_exec = json_data["execution_time"]
 
-            exec_time[cos] = json_exec["secs"] + json_exec["nanos"] / 1e9
+            cos_exec_time_map[cos] = json_exec["secs"] + json_exec["nanos"] / 1e9
 
         self.task_state[task_id] = "READY"
+        self.task_llc[task_id] = cos_exec_time_map
 
-        return exec_time
+    def __get_generosity_variable(self):
+        url = f"{self.scheduler_host}/scheduler/generosity"
+
+        resp = self.__session.get(url)
+        resp.raise_for_status()
+
+        json_data = resp.json()
+        generosity = float(json_data["generosity"])
+
+        return generosity
+
+    # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
+    def __llc_prediction(self, task_id, generosity, cos_exec_time_map):
+        url = f"{self.manager_host}/predictor/task"
+
+        headers = {"Content-Type": "application/json"}
+
+        payload = {
+            "task_id": task_id,
+            "generosity": generosity,
+            "result": [
+                { "cos": cos, "execution_time": exec_time } for (cos, exec_time) in cos_exec_time_map.items()
+            ],
+        }
+
+        resp = self.__session.post(url, headers=headers, json=payload)
+        resp.raise_for_status()
+
+        json_data = resp.json()
+
+        return json_data["suitable_cos"]
+
+    # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
+    def assign_execution(self, command, task_id):
+        generosity = self.__get_generosity_variable()
+        suitable_cos = self.__llc_prediction(task_id, generosity, cos_exec_time_map)
+        resp = self.__execution_helper(command, task_id, suitable_cos)
+
+        return resp

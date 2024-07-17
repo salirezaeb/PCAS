@@ -53,6 +53,9 @@ def benchmark_task():
     command = json_data["command"]
     task_id = json_data["task_id"]
 
-    exec_time = controller.assign_benchmark(command, task_id)
+    controller.assign_benchmark(command, task_id)
 
-    return jsonify({"result": exec_time}), 200
+    if not controller.task_is_ready(task_id):
+        return jsonify({"message": "Failed to benchmark function with specified command"}), 200
+
+    return jsonify({"message": "Benchmarking was successful and function is ready for execution"}), 200
