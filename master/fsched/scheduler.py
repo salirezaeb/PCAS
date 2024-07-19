@@ -6,7 +6,6 @@ from sortedcontainers import SortedSet
 
 from config import Config
 
-
 class Scheduler:
     # FIXME: pass config as argument to constructor instead of reading directly from Config
     def __init__(self):
@@ -65,14 +64,16 @@ class Scheduler:
 
     def choose_suitable_worker(self, task_id, cos):
         with self.__worker_pool_lock:
-            # TODO: remove print lines below
-            print(f"total_cache: {self.__total_available_cache}")
-            print(f"worker_pool: {self.__worker_pool}")
-
             index = self.__worker_pool.bisect_left((cos, ""))
             if index >= len(self.__worker_pool):
                 return None
 
-            _, worker_id = self.__worker_pool.pop(index)
+            available_cache, worker_id = self.__worker_pool.pop(index)
+            # FIXME: bug or feature?
+            self.__worker_pool.add((available_cache, worker_id))
+
+            # TODO: need these lines for logging
+            print(f"required_cos: {cos}")
+            print(f"index: {index} | worker_id: {worker_id}")
 
             return worker_id
