@@ -26,12 +26,15 @@ class Controller:
     def task_is_ready(self, task_id):
         return (self.task_state[task_id] == "READY")
 
-    def __find_suitable_worker(self, task_id):
+    def __find_suitable_worker(self, task_id, cos):
         url = f"{self.scheduler_host}/scheduler/task/worker"
 
         headers = {"Content-Type": "application/json"}
 
-        payload = {"task_id": task_id}
+        payload = {
+            "task_id": task_id,
+            "cos": cos,
+        }
 
         resp = self.__session.post(url, headers=headers, json=payload)
         resp.raise_for_status()
@@ -49,7 +52,7 @@ class Controller:
         payload = {
             "command": command,
             "task_id": task_id,
-            "worker_id": self.__find_suitable_worker(task_id),
+            "worker_id": self.__find_suitable_worker(task_id, cos),
             # TODO: "cos": cos,
         }
 

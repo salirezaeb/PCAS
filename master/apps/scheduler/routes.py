@@ -17,11 +17,15 @@ def get_generosity():
 def get_suitable_worker():
     json_data = request.get_json()
 
-    if "task_id" not in json_data.keys():
-        return jsonify({"message": "No task_id specified"}), 400
+    required_keys = ["task_id", "cos"]
 
+    for key in required_keys:
+        if key not in json_data.keys():
+            return jsonify({"message": "Required keys not specified"}), 400
+
+    cos = json_data["cos"]
     task_id = json_data["task_id"]
 
-    worker_id = scheduler.choose_suitable_worker(task_id)
+    worker_id = scheduler.choose_suitable_worker(task_id, cos)
 
     return jsonify({"worker_id": worker_id}), 200
