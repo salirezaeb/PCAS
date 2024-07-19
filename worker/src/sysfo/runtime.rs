@@ -21,12 +21,15 @@ pub struct SystemInfo {
 #[derive(Clone)]
 pub struct Runtime {
     system: Arc<Mutex<sysinfo::System>>,
+    dummy_cache_bundle: (u64, u64),
 }
 
 impl Runtime {
-    pub fn new() -> Runtime {
+    // FIXME: some dummy data read from config file will do for now
+    pub fn new(dummy_cache_bundle: (u64, u64)) -> Runtime {
         Runtime {
             system: Arc::new(Mutex::new(System::new_all())),
+            dummy_cache_bundle,
         }
     }
 
@@ -45,9 +48,7 @@ impl Runtime {
         let total_swap = system.total_swap();
         let used_swap = total_swap - free_swap;
 
-        // FIXME: some dummy data will do for now
-        let free_cache = 20;
-        let total_cache = 30;
+        let (free_cache, total_cache) = self.dummy_cache_bundle;
         let used_cache = total_cache - free_cache;
 
         SystemInfo {

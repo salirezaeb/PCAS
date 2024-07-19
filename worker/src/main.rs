@@ -6,6 +6,8 @@ use axum::{
     Router,
 };
 
+use config::{Config, FileFormat, File};
+
 use fsched::{
     runtime::Runtime as FschedRuntime,
     service::{DaemonService, TaskService},
@@ -15,11 +17,21 @@ use sysfo::{
     service::HTTPService as SysfoService,
 };
 
+const CONFIG_FILE: &str = "config";
+
 #[tokio::main]
 async fn main() {
+    let app_config = Config::builder()
+        .add_source(File::new(CONFIG_FILE, FileFormat::Toml))
+        .build()
+        .unwrap();
+
     let fsched = FschedRuntime::new().expect("Failed to create fsched runtime");
 
-    let sysfo = SysfoRuntime::new();
+    let free_cache = app_config.get("free_cache").unwrap();
+    let total_cache = app_config.get("total_cache").unwrap();
+
+    let sysfo = SysfoRuntime::new((free_cache, total_cache));
 
     let runtime = fsched.clone();
     fsched.add_daemon(|| async move {
@@ -49,7 +61,9 @@ async fn main() {
             .nest("/daemon", daemon_app)
             .nest("/system", exporter_app);
 
-        let listener = tokio::net::TcpListener::bind("localhost:3000").await.unwrap();
+        let server_host = app_config.get_string("server_host").unwrap();
+
+        let listener = tokio::net::TcpListener::bind(server_host).await.unwrap();
         axum::serve(listener, app).await.unwrap();
     }).await;
 

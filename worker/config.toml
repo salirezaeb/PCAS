@@ -1,0 +1,3 @@
+free_cache = 10
+total_cache = 60
+server_host = "localhost:3100"
