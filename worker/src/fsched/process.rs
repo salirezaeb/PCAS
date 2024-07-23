@@ -20,12 +20,13 @@ pub struct ProcessResult {
 }
 
 pub struct Process {
+    pub cos: u8,
     pub child: io::Result<tokio::process::Child>,
     result: ProcessResult,
 }
 
 impl Process {
-    pub fn new(command: String) -> Self {
+    pub fn new(command: String, cos: u8) -> Self {
         let result = ProcessResult {
             id: Uuid::new_v4(),
             pid: None,
@@ -38,6 +39,7 @@ impl Process {
         };
 
         Self {
+            cos,
             result,
             child: Err(Error::new(ErrorKind::Other, "Failed to create process")),
         }
@@ -66,6 +68,18 @@ impl Process {
 
         if let Ok(child) = &self.child {
             self.result.pid = child.id();
+        }
+
+        if self.cos != 0 {
+            let cache_alloc_cmd = format!("sudo pqos -I -a pid:{}={}", self.cos, self.result.pid.unwrap());
+
+            let mut parts = cache_alloc_cmd.split_whitespace();
+            let program = parts.next().unwrap();
+            let args: Vec<&str> = parts.collect();
+
+            let _ = Command::new(program)
+                .args(&args)
+                .spawn();
         }
     }
 

@@ -39,10 +39,10 @@ class ClusterManager:
 
             time.sleep(self.scrape_interval)
 
-    def assign_task_execution(self, worker_id, command, task_id):
+    def assign_task_execution(self, worker_id, command, task_id, cos):
         worker = self.worker_id_map[worker_id]
 
         id = worker.load_task(task_id)
-        res = worker.run_task(command, id)
+        res = worker.run_task(command, id, cos)
 
         return res

@@ -53,7 +53,7 @@ class Controller:
             "command": command,
             "task_id": task_id,
             "worker_id": self.__find_suitable_worker(task_id, cos),
-            # TODO: "cos": cos,
+            "cos": cos,
         }
 
         resp = self.__session.post(url, headers=headers, json=payload)

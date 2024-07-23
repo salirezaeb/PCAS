@@ -66,7 +66,12 @@ class Scheduler:
         with self.__worker_pool_lock:
             index = self.__worker_pool.bisect_left((cos, ""))
             if index >= len(self.__worker_pool):
-                return None
+                available_cache, worker_id = self.__worker_pool.pop()
+                # FIXME: bug or feature?
+                self.__worker_pool.add((available_cache, worker_id))
+
+                # FIXME: add some error handling
+                return worker_id
 
             available_cache, worker_id = self.__worker_pool.pop(index)
             # FIXME: bug or feature?

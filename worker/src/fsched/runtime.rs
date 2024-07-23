@@ -68,13 +68,13 @@ impl Runtime {
         }
     }
 
-    pub async fn run_file_with_command(&self, command: String, filename: String) -> Result<ProcessResult, Error> {
+    pub async fn run_file_with_command(&self, command: String, filename: String, cos: u8) -> Result<ProcessResult, Error> {
         let handle = self.fs.lock().await;
 
         let filepath = handle.get_filepath(filename)?;
         let command = format!("{} {}", command, filepath);
 
-        let proc = Process::new(command);
+        let proc = Process::new(command, cos);
 
         self.run_process(proc).await
     }
