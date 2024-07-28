@@ -58,9 +58,13 @@ class Scheduler:
             time.sleep(self.update_interval)
 
     # TODO: this is a dummy method for testing purposes
-    def dummy_choose_suitable_worker(self, task_id):
+    def dummy_choose_suitable_worker(self, task_id, cos):
         with self.__worker_pool_lock:
-            return (self.__worker_pool[0] if len(self.__worker_pool) != 0 else None)
+            available_cache, worker_id = self.__worker_pool.pop(0)
+            # FIXME: bug or feature?
+            self.__worker_pool.add((available_cache, worker_id))
+
+            return (worker_id, available_cache)
 
     def choose_suitable_worker(self, task_id, cos):
         with self.__worker_pool_lock:
@@ -70,8 +74,12 @@ class Scheduler:
                 # FIXME: bug or feature?
                 self.__worker_pool.add((available_cache, worker_id))
 
+                # TODO: need these lines for logging
+                print(f"required_cos: {cos}")
+                print(f"index: {index} | worker_id: {worker_id} | cos: {available_cache}")
+
                 # FIXME: add some error handling
-                return worker_id
+                return (worker_id, available_cache)
 
             available_cache, worker_id = self.__worker_pool.pop(index)
             # FIXME: bug or feature?
@@ -79,6 +87,6 @@ class Scheduler:
 
             # TODO: need these lines for logging
             print(f"required_cos: {cos}")
-            print(f"index: {index} | worker_id: {worker_id}")
+            print(f"index: {index} | worker_id: {worker_id} | cos: {available_cache}")
 
-            return worker_id
+            return (worker_id, available_cache)

@@ -26,6 +26,6 @@ def get_suitable_worker():
     cos = json_data["cos"]
     task_id = json_data["task_id"]
 
-    worker_id = scheduler.choose_suitable_worker(task_id, cos)
+    worker_id, cos = scheduler.choose_suitable_worker(task_id, cos)
 
-    return jsonify({"worker_id": worker_id}), 200
+    return jsonify({"worker_id": worker_id, "cos": cos}), 200

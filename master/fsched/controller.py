@@ -41,7 +41,7 @@ class Controller:
 
         json_data = resp.json()
 
-        return json_data["worker_id"]
+        return json_data["worker_id"], json_data["cos"]
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
     def __execution_helper(self, command, task_id, cos):
@@ -49,11 +49,13 @@ class Controller:
 
         headers = {"Content-Type": "application/json"}
 
+        worker_id, worker_cos = self.__find_suitable_worker(task_id, cos)
+
         payload = {
             "command": command,
             "task_id": task_id,
-            "worker_id": self.__find_suitable_worker(task_id, cos),
-            "cos": cos,
+            "worker_id": worker_id,
+            "cos": min(cos, worker_cos),
         }
 
         resp = self.__session.post(url, headers=headers, json=payload)
