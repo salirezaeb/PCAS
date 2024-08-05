@@ -1,25 +1,29 @@
 import csv
+import time
 
 from client.http import HTTPClient
 
 
-TEST_ITER = 5
-FUNCTION_DIR = "./tests/functions"
+TEST_ITER = 10
+FUNCTION_DIR = "./functions"
 OUTPUT_FILE = "./results/output.csv"
 
-MANAGER_URL = "TODO"
-SCHEDULER_URL = "TODO"
-CONTROLLER_URL = "TODO"
+MANAGER_URL = "http://localhost:8100"
+SCHEDULER_URL = "http://localhost:8000"
+CONTROLLER_URL = "http://localhost:8200"
+CLIENT_DELAY_SECONDS = 0.1
 
-WORKER_HOSTS = ["TODO"]
+WORKER_SLEEP_DURATION = 10
+WORKER_HOSTS = ["http://localhost:3000"]
+
 FUNCTIONS = [
     {
-        command: "TODO",
-        filepath: "TODO",
+        "command": "python3.10",
+        "filepath": "batch-normalization/batch_normalization-2000000.py",
     },
 ]
 
-client = HTTPClient(BASE_URL)
+client = HTTPClient(CLIENT_DELAY_SECONDS, MANAGER_URL, SCHEDULER_URL, CONTROLLER_URL)
 
 def write_to_file(function_name, input_size, cos, exec_time, generosity):
     with open(OUTPUT_FILE, "a") as file:
@@ -29,6 +33,8 @@ def write_to_file(function_name, input_size, cos, exec_time, generosity):
 def test_scenario():
     for host in WORKER_HOSTS:
         assert client.register_worker(host)
+
+    time.sleep(WORKER_SLEEP_DURATION)
 
     for function in FUNCTIONS:
         command = function["command"]
@@ -48,6 +54,9 @@ def test_scenario():
 
 
 if __name__ == "__main__":
+    # this is the best stupid idea i've ever had
+    _ = input()
+
     try:
         test_scenario()
         print(f"Testing Successful")
