@@ -10,6 +10,7 @@ use uuid::Uuid;
 #[derive(Debug, Serialize)]
 pub struct ProcessResult {
     id: Uuid,
+    cos: u8,
     command: String,
     pid: Option<u32>,
     stdout: Option<String>,
@@ -20,7 +21,6 @@ pub struct ProcessResult {
 }
 
 pub struct Process {
-    pub cos: u8,
     pub child: io::Result<tokio::process::Child>,
     result: ProcessResult,
 }
@@ -36,10 +36,10 @@ impl Process {
             timestamp: None,
             execution_time: None,
             command,
+            cos,
         };
 
         Self {
-            cos,
             result,
             child: Err(Error::new(ErrorKind::Other, "Failed to create process")),
         }
@@ -70,8 +70,8 @@ impl Process {
             self.result.pid = child.id();
         }
 
-        if self.cos != 0 {
-            let cache_alloc_cmd = format!("sudo pqos -I -a pid:{}={}", self.cos, self.result.pid.unwrap());
+        if self.result.cos != 0 {
+            let cache_alloc_cmd = format!("sudo pqos -I -a pid:{}={}", self.result.cos, self.result.pid.unwrap());
 
             let mut parts = cache_alloc_cmd.split_whitespace();
             let program = parts.next().unwrap();
