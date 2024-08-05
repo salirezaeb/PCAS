@@ -1,7 +1,8 @@
+.env
+
+.venv/
 __pycache__/
 fsched-filebase/
 
-/master/.env
-/master/.venv
-
 /worker/target
+/tests/functions
