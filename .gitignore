@@ -6,3 +6,4 @@ fsched-filebase/
 
 /worker/target
 /tests/functions
+tests/results
