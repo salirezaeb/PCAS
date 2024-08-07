@@ -38,6 +38,16 @@ class CSVAdapter:
         x_solution = fsolve(equation, x_initial_guess)
         return x_solution[0]
 
+    def fit_regression(self, function_exec_times):
+        x_data = [it for it in range(1, self.__cos_count)]
+        y_data = function_exec_times
+
+        params, _ = curve_fit(CSVAdapter.__asymptotic_func, x_data, y_data, p0=[1, 1])
+
+        reg_exec_times = [CSVAdapter.__asymptotic_func(x, *params) for x in x_data]
+
+        return reg_exec_times
+
     # FIXME: this is shit code and needs to be refactored
     # FIXME: this should be done periodically not on api call
     def build_model(self, generosity):

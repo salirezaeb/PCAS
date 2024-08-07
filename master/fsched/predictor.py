@@ -21,8 +21,10 @@ class CachePredictor:
         for (key, val) in model.items():
             model_exec_times, x_model, y_model = val
 
+            reg_exec_times = self.__db.fit_regression(function_exec_times)
+
             min_mse, _, _ = target
-            mse = self.__run_mse(model_exec_times, function_exec_times)
+            mse = self.__run_mse(model_exec_times, reg_exec_times)
 
             if min_mse is None or mse < min_mse:
                 target = (mse, x_model, y_model)
