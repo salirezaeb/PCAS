@@ -68,8 +68,7 @@ class HTTPClient:
 
         time.sleep(self.delay_seconds)
 
-        json_data = response.json()
-        return (json_data["message"] == "Benchmarking was successful and function is ready for execution")
+        return response.json()
 
     def run_task(self, command, task_id):
         url = f"{self.controller_url}/controller/task/run"

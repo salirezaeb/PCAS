@@ -4,7 +4,7 @@ import time
 from client.http import HTTPClient
 
 
-TEST_ITER = 10
+TEST_ITER = 1
 FUNCTION_DIR = "./functions"
 OUTPUT_FILE = "./results/output.csv"
 
@@ -25,12 +25,12 @@ FUNCTIONS = [
 
 client = HTTPClient(CLIENT_DELAY_SECONDS, MANAGER_URL, SCHEDULER_URL, CONTROLLER_URL)
 
-def write_to_file(function_name, input_size, cos, exec_time, generosity):
+def write_to_file(values):
     with open(OUTPUT_FILE, "a") as file:
         csv_writer = csv.writer(file)
-        csv_writer.writerow([function_name, input_size, cos, exec_time, generosity])
+        csv_writer.writerow(values)
 
-def test_scenario():
+def test_exec_time():
     for host in WORKER_HOSTS:
         assert client.register_worker(host)
 
@@ -46,11 +46,39 @@ def test_scenario():
         generosity = client.get_generosity()
 
         task_id = client.new_task(filepath)
-        assert client.benchmark_task(command, task_id)
+
+        resp = client.benchmark_task(command, task_id)
+        assert resp["message"] == "Benchmarking was successful and function is ready for execution"
 
         for _ in range(TEST_ITER):
             cos, exec_time = client.run_task(command, task_id)
-            write_to_file(function_name, input_size, cos, exec_time, generosity)
+            write_to_file([function_name, input_size, cos, exec_time, generosity])
+
+def test_benchmark_curves():
+    for host in WORKER_HOSTS:
+        assert client.register_worker(host)
+
+    time.sleep(WORKER_SLEEP_DURATION)
+
+    for function in FUNCTIONS:
+        command = function["command"]
+        filepath = f"{FUNCTION_DIR}/{function['filepath']}"
+
+        filename = filepath.rsplit("/", 1)[1][:-3]
+        function_name, input_size = filename.split("-")
+
+        generosity = client.get_generosity()
+
+        for _ in range(TEST_ITER):
+            task_id = client.new_task(filepath)
+
+            resp = client.benchmark_task(command, task_id)
+            assert resp["message"] == "Benchmarking was successful and function is ready for execution"
+
+            cos_exec_time_map = resp["exec_time"]
+
+            for cos, exec_time in cos_exec_time_map.items():
+                write_to_file([function_name, input_size, cos, exec_time])
 
 
 if __name__ == "__main__":
@@ -58,7 +86,8 @@ if __name__ == "__main__":
     _ = input()
 
     try:
-        test_scenario()
+        # test_exec_time()
+        test_benchmark_curves()
         print(f"Testing Successful")
 
     except Exception as err:
