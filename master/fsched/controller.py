@@ -82,6 +82,8 @@ class Controller:
         self.task_state[task_id] = "READY"
         self.task_exec_time[task_id] = cos_exec_time_map
 
+        return cos_exec_time_map
+
     def __get_generosity_variable(self):
         url = f"{self.scheduler_host}/scheduler/generosity"
 
