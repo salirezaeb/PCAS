@@ -46,7 +46,11 @@ impl Process {
     }
 
     pub fn run(&mut self) {
-        let command = self.result.command.clone();
+        let mut command = self.result.command.clone();
+
+        if self.result.cos != 0 {
+            command = String::from(format!("taskset -c {} {}", self.result.cos, self.result.command.clone()));
+        }
 
         let mut parts = command.split_whitespace();
         let program = parts.next().unwrap();
@@ -68,18 +72,6 @@ impl Process {
 
         if let Ok(child) = &self.child {
             self.result.pid = child.id();
-        }
-
-        if self.result.cos != 0 {
-            let cache_alloc_cmd = format!("sudo pqos -I -a pid:{}={}", self.result.cos, self.result.pid.unwrap());
-
-            let mut parts = cache_alloc_cmd.split_whitespace();
-            let program = parts.next().unwrap();
-            let args: Vec<&str> = parts.collect();
-
-            let _ = Command::new(program)
-                .args(&args)
-                .spawn();
         }
     }
 
