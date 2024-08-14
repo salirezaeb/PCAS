@@ -13,4 +13,4 @@ class Config:
     SCHEDULER_HOST = os.environ.get("SCHEDULER_HOST", "http://localhost:8000")
     PREDICTOR_HOST = os.environ.get("PREDICTOR_HOST", "http://localhost:8300")
     DB_CSV_PATH = os.environ.get("DB_CSV_PATH", "./data.csv")
-    COS_COUNT = int(os.environ.get("COS_COUNT", "11"))
+    COS_COUNT = int(os.environ.get("COS_COUNT", "10"))

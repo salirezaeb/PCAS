@@ -23,7 +23,7 @@ def new_task():
 def run_task():
     json_data = request.get_json()
 
-    required_keys = ["command", "task_id"]
+    required_keys = ["command", "task_id", "input_size"]
 
     for key in required_keys:
         if key not in json_data.keys():
@@ -31,11 +31,12 @@ def run_task():
 
     command = json_data["command"]
     task_id = json_data["task_id"]
+    input_size = json_data["input_size"]
 
     if not controller.task_is_ready(task_id):
-        return jsonify({"message": "Task is not yet ready for execution"}), 200
+        return jsonify({"message": "Task is not yet ready for execution. Try benchmarking it with a specific input size"}), 200
 
-    resp = controller.assign_execution(command, task_id)
+    resp = controller.assign_execution(command, task_id, input_size)
 
     return resp.json(), 200
 
@@ -44,7 +45,7 @@ def run_task():
 def benchmark_task():
     json_data = request.get_json()
 
-    required_keys = ["command", "task_id"]
+    required_keys = ["command", "task_id", "input_size"]
 
     for key in required_keys:
         if key not in json_data.keys():
@@ -52,16 +53,17 @@ def benchmark_task():
 
     command = json_data["command"]
     task_id = json_data["task_id"]
+    input_size = json_data["input_size"]
 
-    cos_exec_time_map = controller.assign_benchmark(command, task_id)
+    exec_time_map = controller.assign_benchmark(command, task_id, input_size)
 
     if not controller.task_is_ready(task_id):
         return jsonify({
-            "message": "Failed to benchmark function with specified command",
-            "exec_time": cos_exec_time_map,
+            "message": "Failed to benchmark task with specified command and input size",
+            "exec_time": exec_time_map,
         }), 200
 
     return jsonify({
-        "message": "Benchmarking was successful and function is ready for execution",
-        "exec_time": cos_exec_time_map,
+        "message": "Benchmarking was successful and task is ready for execution",
+        "exec_time": exec_time_map,
     }), 200

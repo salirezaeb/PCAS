@@ -3,28 +3,28 @@ import requests
 from config import Config
 
 from fs import filesystem
+from apps.controller import models
 
 
 class Controller:
     # FIXME: pass config as argument to constructor instead of reading directly from Config
     def __init__(self):
-        self.task_state = {}
-        self.task_exec_time = {}
         self.cos_count = Config.COS_COUNT
         self.manager_host = Config.MANAGER_HOST
         self.scheduler_host = Config.SCHEDULER_HOST
         self.predictor_host = Config.PREDICTOR_HOST
         self.__fs = filesystem.Handler()
         self.__session = requests.Session()
+        self.__task_map = {}
 
     def create_task(self, file):
-        task_id = self.__fs.create_file(file)
-        self.task_state[task_id] = "NEW"
+        id = self.__fs.create_file(file)
+        self.__task_map[id] = models.Task(id)
 
-        return task_id
+        return id
 
     def task_is_ready(self, task_id):
-        return (self.task_state[task_id] == "READY")
+        return self.__task_map[task_id].is_ready()
 
     def __find_suitable_worker(self, task_id, cos):
         url = f"{self.scheduler_host}/scheduler/task/worker"
@@ -44,7 +44,7 @@ class Controller:
         return json_data["worker_id"], json_data["cos"]
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
-    def __execution_helper(self, command, task_id, cos):
+    def __execution_helper(self, command, task_id, input_size, cos):
         url = f"{self.manager_host}/cluster/task/assign"
 
         headers = {"Content-Type": "application/json"}
@@ -55,6 +55,7 @@ class Controller:
             "command": command,
             "task_id": task_id,
             "worker_id": worker_id,
+            "input_size": input_size,
             "cos": min(cos, worker_cos),
         }
 
@@ -64,11 +65,11 @@ class Controller:
         return resp
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
-    def assign_benchmark(self, command, task_id):
-        cos_exec_time_map = {}
+    def assign_benchmark(self, command, task_id, input_size):
+        exec_time_map = {}
 
-        for cos in range(1, self.cos_count):
-            resp = self.__execution_helper(command, task_id, cos)
+        for cos in range(1, self.cos_count + 1):
+            resp = self.__execution_helper(command, task_id, input_size, cos)
             json_data = resp.json()["result"]
 
             # FIXME: use exceptions here
@@ -77,12 +78,12 @@ class Controller:
 
             json_exec = json_data["execution_time"]
 
-            cos_exec_time_map[cos] = json_exec["secs"] + json_exec["nanos"] / 1e9
+            exec_time_map[cos] = json_exec["secs"] + json_exec["nanos"] / 1e9
 
-        self.task_state[task_id] = "READY"
-        self.task_exec_time[task_id] = cos_exec_time_map
+        task = self.__task_map[task_id]
+        task.set_exec_time_for_input(input_size, exec_time_map)
 
-        return cos_exec_time_map
+        return exec_time_map
 
     def __get_generosity_variable(self):
         url = f"{self.scheduler_host}/scheduler/generosity"
@@ -96,7 +97,7 @@ class Controller:
         return generosity
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
-    def __llc_prediction(self, task_id, generosity, cos_exec_time_map):
+    def __llc_prediction(self, task_id, generosity, exec_time_map):
         url = f"{self.predictor_host}/predictor/task"
 
         headers = {"Content-Type": "application/json"}
@@ -104,7 +105,7 @@ class Controller:
         payload = {
             "task_id": task_id,
             "generosity": generosity,
-            "execution_time_list": [exec_time for exec_time in cos_exec_time_map.values()],
+            "execution_time_list": [exec_time for exec_time in exec_time_map.values()],
         }
 
         resp = self.__session.post(url, headers=headers, json=payload)
@@ -115,9 +116,13 @@ class Controller:
         return json_data["suitable_cos"]
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
-    def assign_execution(self, command, task_id):
+    def assign_execution(self, command, task_id, input_size):
+        task = self.__task_map[task_id]
+        exec_time_map = task.get_exec_time_for_input(input_size)
+
         generosity = self.__get_generosity_variable()
-        suitable_cos = self.__llc_prediction(task_id, generosity, self.task_exec_time[task_id])
-        resp = self.__execution_helper(command, task_id, suitable_cos)
+
+        suitable_cos = self.__llc_prediction(task_id, generosity, exec_time_map)
+        resp = self.__execution_helper(command, task_id, input_size, suitable_cos)
 
         return resp

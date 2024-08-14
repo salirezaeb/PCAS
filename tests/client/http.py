@@ -53,7 +53,7 @@ class HTTPClient:
             json_data = response.json()
             return json_data["task_id"]
 
-    def benchmark_task(self, command, task_id):
+    def benchmark_task(self, command, task_id, input_size):
         url = f"{self.controller_url}/controller/task/benchmark"
 
         headers = {"Content-Type": "application/json"}
@@ -61,6 +61,7 @@ class HTTPClient:
         payload = {
             "task_id": task_id,
             "command": command,
+            "input_size": input_size,
         }
 
         response = requests.post(url, json=payload, headers=headers)
@@ -70,7 +71,7 @@ class HTTPClient:
 
         return response.json()
 
-    def run_task(self, command, task_id):
+    def run_task(self, command, task_id, input_size):
         url = f"{self.controller_url}/controller/task/run"
 
         headers = {"Content-Type": "application/json"}
@@ -78,6 +79,7 @@ class HTTPClient:
         payload = {
             "task_id": task_id,
             "command": command,
+            "input_size": input_size,
         }
 
         response = requests.post(url, json=payload, headers=headers)

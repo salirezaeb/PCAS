@@ -18,7 +18,8 @@ WORKER_HOSTS = ["http://localhost:3000"]
 FUNCTIONS = [
     {
         "command": "python3.10",
-        "filepath": "batch-normalization/batch_normalization-2000000.py",
+        "filepath": "batch-normalization/batch_normalization.py",
+        "input_size": "100000",
     },
 ]
 
@@ -38,25 +39,25 @@ def test_scenario():
     for function in FUNCTIONS:
         command = function["command"]
         filepath = f"{FUNCTION_DIR}/{function['filepath']}"
+        input_size = function["input_size"]
 
-        filename = filepath.rsplit("/", 1)[1][:-3]
-        function_name, input_size = filename.split("-")
+        task_name = filepath.rsplit("/", 1)[1][:-3]
 
         generosity = client.get_generosity()
 
         task_id = client.new_task(filepath)
 
-        resp = client.benchmark_task(command, task_id)
-        assert resp["message"] == "Benchmarking was successful and function is ready for execution"
+        resp = client.benchmark_task(command, task_id, input_size)
+        assert resp["message"] == "Benchmarking was successful and task is ready for execution"
 
-        cos_exec_time_map = resp["exec_time"]
+        exec_time_map = resp["exec_time"]
 
-        for cos, exec_time in cos_exec_time_map.items():
-            write_to_file([function_name, input_size, cos, exec_time], "./results/bench_output.csv")
+        for cos, exec_time in exec_time_map.items():
+            write_to_file([task_name, input_size, cos, exec_time], "./results/bench_output.csv")
 
         for _ in range(TEST_ITER):
-            cos, exec_time = client.run_task(command, task_id)
-            write_to_file([function_name, input_size, cos, exec_time, generosity], "./results/run_output.csv")
+            cos, exec_time = client.run_task(command, task_id, input_size)
+            write_to_file([task_name, input_size, cos, exec_time, generosity], "./results/run_output.csv")
 
 
 if __name__ == "__main__":
@@ -65,7 +66,7 @@ if __name__ == "__main__":
 
     try:
         test_scenario()
-        print(f"Testing Successful")
+        print(f"testing Successful")
 
     except Exception as err:
         print(f"testing Failed With The Following Error: {err}")

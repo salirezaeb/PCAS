@@ -39,7 +39,7 @@ class CSVAdapter:
         return x_solution[0]
 
     def fit_regression(self, function_exec_times):
-        x_data = [it for it in range(1, self.__cos_count)]
+        x_data = [it for it in range(1, self.__cos_count + 1)]
         y_data = function_exec_times
 
         params, _ = curve_fit(CSVAdapter.__asymptotic_func, x_data, y_data, p0=[1, 1])
@@ -78,7 +78,7 @@ class CSVAdapter:
                 x_best = min(int(np.ceil(x_slope)), 10)
                 y_best = CSVAdapter.__asymptotic_func(x_best, *params)
 
-                model_exec_times = [CSVAdapter.__asymptotic_func(cos, *params) for cos in range(1, self.__cos_count)]
+                model_exec_times = [CSVAdapter.__asymptotic_func(cos, *params) for cos in range(1, self.__cos_count + 1)]
 
                 model[(name, size)] = (model_exec_times, x_best, y_best)
 

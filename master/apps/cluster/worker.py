@@ -53,7 +53,7 @@ class WorkerNode:
 
         return json_data["id"]
 
-    def run_task(self, command, id, cos):
+    def run_task(self, command, id, input_size, cos):
         url = f"{self.host}/task/file/run"
 
         headers = {"Content-Type": "application/json"}
@@ -61,6 +61,7 @@ class WorkerNode:
         payload = {
             "command": command,
             "filename": id,
+            "input_size": input_size,
             # "cos": cos,
             "cos": 0,
         }
