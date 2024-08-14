@@ -12,6 +12,7 @@ pub struct ProcessResult {
     id: Uuid,
     cos: u8,
     command: String,
+    input_size: String,
     pid: Option<u32>,
     stdout: Option<String>,
     stderr: Option<String>,
@@ -26,7 +27,7 @@ pub struct Process {
 }
 
 impl Process {
-    pub fn new(command: String, cos: u8) -> Self {
+    pub fn new(command: String, input_size: String, cos: u8) -> Self {
         let result = ProcessResult {
             id: Uuid::new_v4(),
             pid: None,
@@ -36,6 +37,7 @@ impl Process {
             timestamp: None,
             execution_time: None,
             command,
+            input_size,
             cos,
         };
 
@@ -46,10 +48,10 @@ impl Process {
     }
 
     pub fn run(&mut self) {
-        let mut command = self.result.command.clone();
+        let mut command = format!("{} {}", self.result.command.clone(), self.result.input_size);
 
         if self.result.cos != 0 {
-            command = String::from(format!("taskset -c {} {}", self.result.cos, self.result.command.clone()));
+            command = format!("taskset -c {} {}", self.result.cos, self.result.command.clone());
         }
 
         let mut parts = command.split_whitespace();

@@ -16,6 +16,7 @@ pub struct TaskRequest {
     cos: Option<u8>,
     command: Option<String>,
     filename: Option<String>,
+    input_size: Option<String>,
 }
 
 #[derive(Clone)]
@@ -39,7 +40,7 @@ impl TaskService {
     pub async fn command_handler(State(state): State<TaskService>, Json(payload): Json<TaskRequest>) -> impl IntoResponse {
         if let Some(command) = payload.command {
             // FIXME: i dont know if it's safe to put zero here
-            let proc = Process::new(command, 0);
+            let proc = Process::new(command, String::new(), 0);
 
             match state.runtime.run_process(proc).await {
                 Ok(res) => Json(res).into_response(),
@@ -76,9 +77,9 @@ impl TaskService {
     }
 
     pub async fn run_file_handler(State(state): State<TaskService>, Json(payload): Json<TaskRequest>) -> impl IntoResponse {
-        match (payload.cos, payload.command, payload.filename) {
-            (Some(cos), Some(command), Some(filename)) => {
-                match state.runtime.run_file_with_command(command, filename, cos).await {
+        match (payload.cos, payload.command, payload.filename, payload.input_size) {
+            (Some(cos), Some(command), Some(filename), Some(input_size)) => {
+                match state.runtime.run_file_with_command(command, filename, input_size, cos).await {
                     Ok(res) => Json(res).into_response(),
                     Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
                 }
