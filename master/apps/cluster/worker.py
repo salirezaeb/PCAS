@@ -2,7 +2,7 @@ import requests
 
 from dataclasses import dataclass
 
-from fsched.fs import FileSystem
+from fs import filesystem
 
 
 @dataclass
@@ -23,7 +23,7 @@ class WorkerNode:
     def __init__(self, host):
         self.host = host
         self.system_info = None
-        self.__fs = FileSystem()
+        self.__fs = filesystem.Handler()
         self.__session = requests.Session()
 
     def raise_if_unresponsive(self):

@@ -5,7 +5,7 @@ import threading
 from config import Config
 
 
-class FileSystem:
+class Handler:
     def __init__(self):
         self.upload_folder = Config.UPLOAD_FOLDER
         self.__lock = threading.Lock()

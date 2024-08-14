@@ -1,3 +1,3 @@
-from fsched.controller import Controller
+from apps.controller.controller import Controller
 
 controller = Controller()

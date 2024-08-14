@@ -2,7 +2,7 @@ import requests
 
 from config import Config
 
-from fsched.fs import FileSystem
+from fs import filesystem
 
 
 class Controller:
@@ -14,7 +14,7 @@ class Controller:
         self.manager_host = Config.MANAGER_HOST
         self.scheduler_host = Config.SCHEDULER_HOST
         self.predictor_host = Config.PREDICTOR_HOST
-        self.__fs = FileSystem()
+        self.__fs = filesystem.Handler()
         self.__session = requests.Session()
 
     def create_task(self, file):

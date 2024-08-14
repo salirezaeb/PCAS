@@ -1,4 +1,4 @@
-from apps.scheduler import fs, scheduler
+from apps.scheduler import scheduler
 
 from flask import Blueprint, request, jsonify
 

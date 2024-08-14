@@ -4,7 +4,7 @@ import threading
 
 from config import Config
 
-from fsched.worker import WorkerNode
+from apps.cluster.worker import WorkerNode
 
 
 class ClusterManager:

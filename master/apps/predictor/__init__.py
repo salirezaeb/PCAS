@@ -1,4 +1,4 @@
-from fsched.predictor import CachePredictor
+from apps.predictor.predictor import CachePredictor
 
 
 cache_predictor = CachePredictor()
