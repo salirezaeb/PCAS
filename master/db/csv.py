@@ -19,6 +19,14 @@ class CSVAdapter:
             "image_recognition.py",
             "image_resize.py",
             "video_processing.py",
+            "binary_tree.py",
+            "knapsack.py",
+            "pca.py",
+            "color_transform.py",
+            "kmeans.py",
+            "quick_sort.py",
+            "linear_equation.py",
+            "fft.py",
         ]
 
     @staticmethod
@@ -48,7 +56,6 @@ class CSVAdapter:
 
         return reg_exec_times
 
-    # FIXME: this is shit code and needs to be refactored
     # FIXME: this should be done periodically not on api call
     def build_model(self, generosity):
         model = {}

@@ -88,9 +88,11 @@ class HTTPClient:
         time.sleep(self.delay_seconds)
 
         json_data = response.json()
+
+        mode = json_data["mode"]
         result = json_data["result"]
 
         cos = result["cos"]
         exec_time = result["execution_time"]["secs"] + (1e-9 * result["execution_time"]["nanos"])
 
-        return cos, exec_time
+        return mode, cos, exec_time

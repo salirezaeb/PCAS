@@ -23,8 +23,8 @@ class Controller:
 
         return id
 
-    def task_is_ready(self, task_id):
-        return self.__task_map[task_id].is_ready()
+    def task_state_for_input(self, task_id, input_size):
+        return self.__task_map[task_id].state_for_input(input_size)
 
     def __find_suitable_worker(self, task_id, cos):
         url = f"{self.scheduler_host}/scheduler/task/worker"
@@ -97,16 +97,33 @@ class Controller:
         return generosity
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
-    def __llc_prediction(self, task_id, generosity, exec_time_map):
+    def __llc_prediction(self, task_id, input_size, generosity):
         url = f"{self.predictor_host}/predictor/task"
 
         headers = {"Content-Type": "application/json"}
 
-        payload = {
-            "task_id": task_id,
-            "generosity": generosity,
-            "execution_time_list": [exec_time for exec_time in exec_time_map.values()],
-        }
+        task = self.__task_map[task_id]
+
+        if task.state_for_input(input_size) == "ASSISTED":
+            url = f"{url}/assisted"
+
+            payload = {
+                "task_id": task_id,
+                "generosity": generosity,
+                "input_size": input_size,
+            }
+
+        if task.state_for_input(input_size) == "BENCHMARKED":
+            url = f"{url}/benchmarked"
+
+            exec_time_map = task.get_exec_time_for_input(input_size)
+
+            payload = {
+                "task_id": task_id,
+                "generosity": generosity,
+                "input_size": input_size,
+                "execution_time_list": [exec_time for exec_time in exec_time_map.values()],
+            }
 
         resp = self.__session.post(url, headers=headers, json=payload)
         resp.raise_for_status()
@@ -117,12 +134,8 @@ class Controller:
 
     # FIXME: this uses REST for now, in the future it should be implemented using smth event-based (eg: rabbitmq)
     def assign_execution(self, command, task_id, input_size):
-        task = self.__task_map[task_id]
-        exec_time_map = task.get_exec_time_for_input(input_size)
-
         generosity = self.__get_generosity_variable()
-
-        suitable_cos = self.__llc_prediction(task_id, generosity, exec_time_map)
+        suitable_cos = self.__llc_prediction(task_id, input_size, generosity)
         resp = self.__execution_helper(command, task_id, input_size, suitable_cos)
 
         return resp

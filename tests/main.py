@@ -18,8 +18,9 @@ WORKER_HOSTS = ["http://localhost:3000"]
 FUNCTIONS = [
     {
         "command": "python3.10",
-        "filepath": "batch-normalization/batch_normalization.py",
-        "input_size": "100000",
+        "filepath": "eigenvalue/eigenvalue.py",
+        "benchmark_inputs": ["2000"],
+        "run_inputs": ["2000", "1500", "2500"],
     },
 ]
 
@@ -39,7 +40,9 @@ def test_scenario():
     for function in FUNCTIONS:
         command = function["command"]
         filepath = f"{FUNCTION_DIR}/{function['filepath']}"
-        input_size = function["input_size"]
+
+        run_inputs = function["run_inputs"]
+        benchmark_inputs = function["benchmark_inputs"]
 
         task_name = filepath.rsplit("/", 1)[1][:-3]
 
@@ -47,17 +50,21 @@ def test_scenario():
 
         task_id = client.new_task(filepath)
 
-        resp = client.benchmark_task(command, task_id, input_size)
-        assert resp["message"] == "Benchmarking was successful and task is ready for execution"
+        # benchmarking for inputs
+        for input_size in benchmark_inputs:
+            resp = client.benchmark_task(command, task_id, input_size)
+            assert resp["message"] == "Benchmarking was successful and task is ready for execution"
 
-        exec_time_map = resp["exec_time"]
+            exec_time_map = resp["exec_time"]
 
-        for cos, exec_time in exec_time_map.items():
-            write_to_file([task_name, input_size, cos, exec_time], "./results/bench_output.csv")
+            for cos, exec_time in exec_time_map.items():
+                write_to_file([task_name, input_size, cos, exec_time], "./results/bench_output.csv")
 
-        for _ in range(TEST_ITER):
-            cos, exec_time = client.run_task(command, task_id, input_size)
-            write_to_file([task_name, input_size, cos, exec_time, generosity], "./results/run_output.csv")
+        # running for inputs
+        for input_size in run_inputs:
+            for _ in range(TEST_ITER):
+                mode, cos, exec_time = client.run_task(command, task_id, input_size)
+                write_to_file([task_name, input_size, mode, cos, exec_time, generosity], "./results/run_output.csv")
 
 
 if __name__ == "__main__":
