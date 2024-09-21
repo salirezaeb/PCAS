@@ -4,6 +4,7 @@
 __pycache__/
 fsched-filebase/
 
+/master/data.csv
 /worker/target
 /tests/functions
 tests/results
