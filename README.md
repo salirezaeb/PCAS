@@ -9,7 +9,6 @@
 *   [Architecture](#architecture)
 *   [Installation](#installation)
 *   [Usage](#usage)
-*   [Contributing](#contributing)
 *   [License](#license)
 
 ## Overview
@@ -41,7 +40,7 @@ The master node is responsible for managing the overall system and is composed o
 
 Worker nodes, implemented in Rust, execute functions that have been scheduled by the master node. They use the LLC allocated by the master node's prediction model to ensure efficient execution.
 
-_(architecture diagram)_
+![fshed_diagram](https://github.com/user-attachments/assets/727086e2-ae20-4407-8eb9-965ed2c865f5)
 
 ## Installation
 
@@ -277,4 +276,4 @@ The following endpoints allow for managing worker nodes in the Fsched platform. 
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the GPL License. See the LICENSE file for details.
