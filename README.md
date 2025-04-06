@@ -1,4 +1,5 @@
 # Fsched: A Function-as-a-Service Platform with Smart Cache Allocation
+**Fsched** is the practical implementation of our proposed system, PCAS (Processor Cache-Aware Scheduler), designed to enhance performance in Function-as-a-Service (FaaS) environments. PCAS introduces a cache-conscious scheduling approach, and Fsched brings this concept to life through a fully operational platform.
 
 **Fsched** is a Function-as-a-Service (FaaS) platform that optimizes function execution by predicting and allocating the required Last Level Cache (LLC) for each function. The platform follows a **Master-Worker** architecture, where the **Master Node** manages function scheduling and LLC allocation, and the **Worker Nodes** execute the functions.
 
