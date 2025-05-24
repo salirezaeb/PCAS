@@ -32,7 +32,7 @@ Fsched's architecture revolves around a **Master Node** and **Worker Nodes**.
 
 The master node is responsible for managing the overall system and is composed of the following key modules:
 
-1.  **Cluster Manager**: Manages worker nodes, including adding, removing, and monitoring nodes in the system.
+1.  **Resource Manager**: Manages worker nodes, including adding, removing, and monitoring nodes in the system.
 2.  **Controller**: Acts as the central hub, handling incoming function requests, coordinating with the other modules, and ensuring tasks are processed.
 3.  **Scheduler**: Schedules tasks on worker nodes based on LLC predictions and available resources.
 4.  **Predictor**: Utilizes a machine learning model to predict the required LLC for each function, ensuring optimal scheduling and resource allocation.
